@@ -1,2 +1,23 @@
 # CI/CD Pipeline configuration
 # Content will be added in Phase 2
+
+# CI/CD Pipeline for Node.js Demo App
+# This workflow will be configured in Phase 2
+
+name: CI/CD Pipeline
+
+# Trigger conditions (currently disabled)
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+# Jobs will be added in Phase 2
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    if: false  # This prevents the job from running
+    steps:
+      - name: Placeholder
+        run: echo "CI/CD Pipeline will be configured in Phase 2"
