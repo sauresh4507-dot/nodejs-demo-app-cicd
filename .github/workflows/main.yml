@@ -1,23 +1,45 @@
-# CI/CD Pipeline configuration
-# Content will be added in Phase 2
-
-# CI/CD Pipeline for Node.js Demo App
-# This workflow will be configured in Phase 2
-
 name: CI/CD Pipeline
 
-# Trigger conditions (currently disabled)
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
-# Jobs will be added in Phase 2
 jobs:
-  placeholder:
+  build:
     runs-on: ubuntu-latest
-    if: false  # This prevents the job from running
+    
     steps:
-      - name: Placeholder
-        run: echo "CI/CD Pipeline will be configured in Phase 2"
+      # Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Run tests
+      - name: Run tests
+        run: npm test
+
+      # Build Docker image
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.sauresh7 }}/nodejs-demo-app:latest .
+
+      # Login to DockerHub
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ sauresh7 }}
+          password: ${{ Sauresh@4545 }}
+
+      # Push image to DockerHub
+      - name: Push Docker image
+        run: docker push ${{ secrets.sauresh7 }}/nodejs-demo-app:latest
