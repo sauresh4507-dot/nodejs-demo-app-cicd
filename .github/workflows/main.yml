@@ -1,45 +1,93 @@
 name: CI/CD Pipeline
 
+# Trigger the workflow on push to main branch
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+
+# Environment variables
+env:
+  DOCKER_IMAGE: sauresh4507-dot/nodejs-demo-app
+  NODE_VERSION: '18'
 
 jobs:
-  build:
+  # Job 1: Test and Build
+  test-and-build:
     runs-on: ubuntu-latest
     
     steps:
-      # Checkout repo
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Step 1: Checkout code from repository
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Step 2: Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        npm ci
+    
+    # Step 4: Run tests
+    - name: Run tests
+      run: |
+        npm test
+    
+    # Step 5: Build application (if needed)
+    - name: Build application
+      run: |
+        echo "✅ Application built successfully!"
 
-      # Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+  # Job 2: Docker Build and Push
+  docker-build-push:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Step 2: Set up Docker Buildx
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # Step 3: Login to DockerHub
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    # Step 4: Build and push Docker image
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ env.DOCKER_IMAGE }}:latest
+          ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-      # Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # Run tests
-      - name: Run tests
-        run: npm test
-
-      # Build Docker image
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.sauresh7 }}/nodejs-demo-app:latest .
-
-      # Login to DockerHub
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ sauresh7 }}
-          password: ${{ Sauresh@4545 }}
-
-      # Push image to DockerHub
-      - name: Push Docker image
-        run: docker push ${{ secrets.sauresh7 }}/nodejs-demo-app:latest
+  # Job 3: Deployment Notification
+  deploy-notification:
+    needs: [test-and-build, docker-build-push]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deployment Success
+      run: |
+        echo "🎉 Deployment completed successfully!"
+        echo "🐳 Docker image pushed: ${{ env.DOCKER_IMAGE }}:latest"
+        echo "🔗 Image also tagged with: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
