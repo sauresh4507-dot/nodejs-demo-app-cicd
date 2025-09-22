@@ -9,7 +9,7 @@ on:
 
 # Environment variables
 env:
-  DOCKER_IMAGE: sauresh4507-dot/nodejs-demo-app
+  DOCKER_IMAGE: sauresh4507/nodejs-demo-app
   NODE_VERSION: '18'
 
 jobs:
